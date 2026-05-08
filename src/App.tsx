@@ -144,7 +144,7 @@ export default function App() {
         <header className="hero">
           <div>
             <p className="eyebrow">Stocker</p>
-            <h1>Analyze stocks before swing or long-term decisions.</h1>
+            <h1>Market Signal</h1>
           </div>
           <div className="source-pill">
             <ShieldCheck aria-hidden="true" size={17} />
