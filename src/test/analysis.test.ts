@@ -30,5 +30,9 @@ describe("analyzeCandles", () => {
     expect(result.swing.score).toBeGreaterThanOrEqual(65);
     expect(result.longTerm.score).toBeGreaterThanOrEqual(70);
     expect(result.patterns.some((pattern) => pattern.name === "Bullish continuation")).toBe(true);
+    expect(result.levels.supports).toHaveLength(3);
+    expect(result.levels.resistances).toHaveLength(3);
+    expect(result.levels.supports.every((level) => level.level < result.metrics.latestClose)).toBe(true);
+    expect(result.levels.resistances.every((level) => level.level > result.metrics.latestClose)).toBe(true);
   });
 });

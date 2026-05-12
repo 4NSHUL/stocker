@@ -3,6 +3,9 @@ import type {
   Candle,
   HorizonVerdict,
   PatternSignal,
+  PriceLevel,
+  PriceLevelKind,
+  SupportResistanceAnalysis,
   VerdictLabel
 } from "../types";
 
@@ -188,6 +191,210 @@ function supportResistance(candles: Candle[]) {
   };
 }
 
+interface LevelCandidate {
+  level: number;
+  timestamp: number;
+  volume: number;
+  source: string;
+}
+
+interface LevelCluster {
+  level: number;
+  members: LevelCandidate[];
+}
+
+function isPivot(candles: Candle[], index: number, kind: PriceLevelKind, window = 3) {
+  const candle = candles[index];
+  const neighbors = candles.slice(index - window, index + window + 1);
+
+  if (!candle || neighbors.length < window * 2 + 1) {
+    return false;
+  }
+
+  if (kind === "resistance") {
+    return candle.high === Math.max(...neighbors.map((neighbor) => neighbor.high));
+  }
+
+  return candle.low === Math.min(...neighbors.map((neighbor) => neighbor.low));
+}
+
+function clusterLevelCandidates(candidates: LevelCandidate[], tolerancePercent: number) {
+  return candidates
+    .sort((left, right) => left.level - right.level)
+    .reduce<LevelCluster[]>((clusters, candidate) => {
+      const currentCluster = clusters.find(
+        (cluster) => Math.abs(candidate.level - cluster.level) / cluster.level <= tolerancePercent
+      );
+
+      if (!currentCluster) {
+        clusters.push({
+          level: candidate.level,
+          members: [candidate]
+        });
+        return clusters;
+      }
+
+      currentCluster.members.push(candidate);
+      currentCluster.level = average(currentCluster.members.map((member) => member.level)) ?? currentCluster.level;
+      return clusters;
+    }, []);
+}
+
+function confidenceForLevel(touches: number, daysSinceSeen: number) {
+  if (touches >= 4 && daysSinceSeen <= 120) {
+    return "High" as const;
+  }
+
+  if (touches >= 2 && daysSinceSeen <= 200) {
+    return "Medium" as const;
+  }
+
+  return "Low" as const;
+}
+
+function classicPivotFallbacks(candles: Candle[], kind: PriceLevelKind): PriceLevel[] {
+  const latest = candles.at(-1);
+
+  if (!latest) {
+    return [];
+  }
+
+  const pivot = (latest.high + latest.low + latest.close) / 3;
+  const levels =
+    kind === "resistance"
+      ? [
+          2 * pivot - latest.low,
+          pivot + (latest.high - latest.low),
+          latest.high + 2 * (pivot - latest.low)
+        ]
+      : [
+          2 * pivot - latest.high,
+          pivot - (latest.high - latest.low),
+          latest.low - 2 * (latest.high - pivot)
+        ];
+
+  return levels.map((level) => ({
+    kind,
+    level: round(level)!,
+    distancePercent: round(percentChange(level, latest.close)) ?? 0,
+    touches: 1,
+    confidence: "Low" as const,
+    lastSeen: latest.date,
+    source: "Classic pivot from latest Yahoo Finance OHLC"
+  }));
+}
+
+function rankedLevels(candles: Candle[], latestClose: number, kind: PriceLevelKind): PriceLevel[] {
+  const recent = candles.slice(-252);
+  const latestTimestamp = candles.at(-1)?.timestamp ?? 0;
+  const candidates: LevelCandidate[] = [];
+
+  recent.forEach((candle, index) => {
+    if (!isPivot(recent, index, kind)) {
+      return;
+    }
+
+    candidates.push({
+      level: kind === "resistance" ? candle.high : candle.low,
+      timestamp: candle.timestamp,
+      volume: candle.volume,
+      source: "Yahoo Finance live OHLC"
+    });
+  });
+
+  const lookbackWindows = [20, 60, 126, 252];
+
+  lookbackWindows.forEach((window) => {
+    const range = recent.slice(-window);
+
+    if (range.length === 0) {
+      return;
+    }
+
+    const candle =
+      kind === "resistance"
+        ? range.reduce((highest, current) => (current.high > highest.high ? current : highest), range[0])
+        : range.reduce((lowest, current) => (current.low < lowest.low ? current : lowest), range[0]);
+
+    candidates.push({
+      level: kind === "resistance" ? candle.high : candle.low,
+      timestamp: candle.timestamp,
+      volume: candle.volume,
+      source: `${window}D ${kind === "resistance" ? "high" : "low"} from Yahoo Finance`
+    });
+  });
+
+  const clusters = clusterLevelCandidates(candidates, 0.008);
+
+  const clusteredLevels = clusters
+    .map((cluster) => {
+      const latestMember = cluster.members.reduce((latest, member) =>
+        member.timestamp > latest.timestamp ? member : latest
+      );
+      const daysSinceSeen = latestTimestamp
+        ? Math.max(0, Math.round((latestTimestamp - latestMember.timestamp) / (24 * 60 * 60)))
+        : 999;
+      const level = round(cluster.level)!;
+
+      return {
+        kind,
+        level,
+        distancePercent: round(percentChange(level, latestClose)) ?? 0,
+        touches: cluster.members.length,
+        confidence: confidenceForLevel(cluster.members.length, daysSinceSeen),
+        lastSeen: new Date(latestMember.timestamp * 1000).toISOString().slice(0, 10),
+        source: latestMember.source
+      };
+    })
+    .filter((level) =>
+      kind === "resistance" ? level.level > latestClose * 1.002 : level.level < latestClose * 0.998
+    )
+    .sort((left, right) => {
+      if (kind === "resistance") {
+        return left.level - right.level;
+      }
+
+      return right.level - left.level;
+    })
+    .slice(0, 3);
+
+  if (clusteredLevels.length >= 3) {
+    return clusteredLevels;
+  }
+
+  const seen = new Set(clusteredLevels.map((level) => level.level));
+  const fallbackLevels = classicPivotFallbacks(candles, kind).filter((level) => {
+    const isOnCorrectSide =
+      kind === "resistance" ? level.level > latestClose * 1.002 : level.level < latestClose * 0.998;
+
+    if (!isOnCorrectSide || seen.has(level.level)) {
+      return false;
+    }
+
+    seen.add(level.level);
+    return true;
+  });
+
+  return [...clusteredLevels, ...fallbackLevels]
+    .sort((left, right) => {
+      if (kind === "resistance") {
+        return left.level - right.level;
+      }
+
+      return right.level - left.level;
+    })
+    .slice(0, 3);
+}
+
+function supportResistanceLevels(candles: Candle[], latestClose: number): SupportResistanceAnalysis {
+  return {
+    supports: rankedLevels(candles, latestClose, "support"),
+    resistances: rankedLevels(candles, latestClose, "resistance"),
+    source: "Yahoo Finance live OHLC candles",
+    method: "Clustered pivot highs/lows plus 20D, 60D, 126D, and 252D range levels"
+  };
+}
+
 function grade(score: number): VerdictLabel {
   if (score >= 72) {
     return "Good candidate";
@@ -280,6 +487,7 @@ export function analyzeCandles(candles1y: Candle[], candles5y: Candle[]) {
   const previousSma50 = historicalSimpleMovingAverage(candles1y, 50, 20);
   const previousSma200 = historicalSimpleMovingAverage(candles1y, 200, 20);
   const oneYearReference = valueBefore(candles1y, 365) ?? candles1y[0]?.close ?? null;
+  const levels = supportResistanceLevels(candles1y, latest.close);
 
   const metrics: AnalysisMetrics = {
     latestClose: round(latest.close)!,
@@ -454,6 +662,7 @@ export function analyzeCandles(candles1y: Candle[], candles5y: Candle[]) {
     metrics,
     swing,
     longTerm,
+    levels,
     patterns
   };
 }

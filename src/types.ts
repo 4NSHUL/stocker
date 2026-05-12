@@ -30,6 +30,25 @@ export interface PatternSignal {
   detail: string;
 }
 
+export type PriceLevelKind = "support" | "resistance";
+
+export interface PriceLevel {
+  kind: PriceLevelKind;
+  level: number;
+  distancePercent: number;
+  touches: number;
+  confidence: "High" | "Medium" | "Low";
+  lastSeen: string;
+  source: string;
+}
+
+export interface SupportResistanceAnalysis {
+  supports: PriceLevel[];
+  resistances: PriceLevel[];
+  source: string;
+  method: string;
+}
+
 export interface HorizonVerdict {
   horizon: "Swing" | "Long term";
   label: VerdictLabel;
@@ -80,6 +99,7 @@ export interface StockAnalysis {
   candles5y: Candle[];
   metrics: AnalysisMetrics;
   patterns: PatternSignal[];
+  levels: SupportResistanceAnalysis;
   swing: HorizonVerdict;
   longTerm: HorizonVerdict;
   sources: SourceLink[];

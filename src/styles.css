@@ -287,6 +287,7 @@ svg {
 .chart-toolbar,
 .pattern-section,
 .source-section,
+.levels-section,
 .chart-panel {
   border: 1px solid rgba(13, 20, 18, 0.08);
   border-radius: 22px;
@@ -576,6 +577,7 @@ svg {
 }
 
 .pattern-section,
+.levels-section,
 .source-section {
   padding: 1rem;
 }
@@ -646,6 +648,97 @@ svg {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 1.08rem;
+}
+
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 0.9rem;
+}
+
+.level-group {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.level-group__title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #0d1412;
+}
+
+.level-group__title h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.level-row {
+  min-height: 4.8rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(13, 20, 18, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.level-row--support {
+  border-left: 0.28rem solid #087a4a;
+}
+
+.level-row--resistance {
+  border-left: 0.28rem solid #b53c34;
+}
+
+.level-row strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  overflow-wrap: anywhere;
+  font-size: 1.05rem;
+}
+
+.level-row span,
+.method-note,
+.empty-levels {
+  color: #68756e;
+  font-size: 0.8rem;
+}
+
+.level-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.32rem;
+}
+
+.level-meta span,
+.source-chip {
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.5rem;
+  border-radius: 999px;
+  background: #edf2ea;
+  color: #526158;
+  font-size: 0.74rem;
+  font-weight: 820;
+}
+
+.source-chip {
+  flex: 0 1 auto;
+  text-align: right;
+}
+
+.method-note,
+.empty-levels {
+  margin: 0.6rem 0 0;
+  line-height: 1.45;
 }
 
 .source-links {
@@ -773,6 +866,7 @@ svg {
   .reason-grid,
   .pattern-list,
   .metric-grid,
+  .levels-grid,
   .hot-list {
     grid-template-columns: 1fr;
   }
@@ -810,6 +904,14 @@ svg {
 
   .segmented-control {
     width: 100%;
+  }
+
+  .level-row {
+    grid-template-columns: 1fr;
+  }
+
+  .level-meta {
+    justify-content: flex-start;
   }
 
   .segmented-control button {

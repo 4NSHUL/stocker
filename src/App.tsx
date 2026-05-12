@@ -6,6 +6,7 @@ import CandlestickChart from "./components/CandlestickChart";
 import HotStocksPanel from "./components/HotStocksPanel";
 import MetricGrid from "./components/MetricGrid";
 import SearchBox from "./components/SearchBox";
+import SupportResistancePanel from "./components/SupportResistancePanel";
 import VerdictCard from "./components/VerdictCard";
 import { WATCHLIST, normalizeSymbol } from "./data/markets";
 import type { AnalysisError, StockAnalysis, StockSuggestion } from "./types";
@@ -261,6 +262,8 @@ export default function App() {
             </section>
 
             <MetricGrid currency={analysis.currency} metrics={analysis.metrics} />
+
+            <SupportResistancePanel currency={analysis.currency} levels={analysis.levels} />
 
             <section className="source-section">
               <div className="section-heading">
