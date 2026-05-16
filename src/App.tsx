@@ -5,11 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import CandlestickChart from "./components/CandlestickChart";
 import HotStocksPanel from "./components/HotStocksPanel";
 import MetricGrid from "./components/MetricGrid";
+import NiftySwingPicksPanel from "./components/NiftySwingPicksPanel";
 import SearchBox from "./components/SearchBox";
 import SupportResistancePanel from "./components/SupportResistancePanel";
 import VerdictCard from "./components/VerdictCard";
 import { WATCHLIST, normalizeSymbol } from "./data/markets";
-import type { AnalysisError, StockAnalysis, StockSuggestion } from "./types";
+import type { AnalysisError, NiftySwingScan, StockAnalysis, StockSuggestion } from "./types";
 
 type ChartRange = "1y" | "5y";
 
@@ -42,6 +43,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [swingScan, setSwingScan] = useState<NiftySwingScan | null>(null);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const runAnalysis = useCallback(async (symbol: string) => {
     const normalized = normalizeSymbol(symbol);
@@ -71,9 +75,33 @@ export default function App() {
     }
   }, []);
 
+  const loadSwingScan = useCallback(async () => {
+    setScanLoading(true);
+    setScanError(null);
+
+    try {
+      const response = await fetch("/api/nifty100/swing-picks");
+      const data = (await response.json()) as NiftySwingScan | AnalysisError;
+
+      if (!response.ok || "error" in data) {
+        throw new Error("detail" in data && data.detail ? data.detail : "Nifty 100 scan failed.");
+      }
+
+      setSwingScan(data);
+    } catch (requestError) {
+      setScanError(requestError instanceof Error ? requestError.message : "Unable to scan Nifty 100.");
+    } finally {
+      setScanLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void runAnalysis(WATCHLIST[0].symbol);
   }, [runAnalysis]);
+
+  useEffect(() => {
+    void loadSwingScan();
+  }, [loadSwingScan]);
 
   useEffect(() => {
     const query = searchValue.trim();
@@ -168,6 +196,14 @@ export default function App() {
             Searching market symbols
           </div>
         ) : null}
+
+        <NiftySwingPicksPanel
+          error={scanError}
+          loading={scanLoading}
+          scan={swingScan}
+          onAnalyze={runAnalysis}
+          onRefresh={loadSwingScan}
+        />
 
         {error ? (
           <section className="error-panel" role="alert">

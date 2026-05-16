@@ -49,6 +49,40 @@ export interface SupportResistanceAnalysis {
   method: string;
 }
 
+export interface NiftySwingPick {
+  rank: number;
+  symbol: string;
+  yahooSymbol: string;
+  companyName: string;
+  industry?: string;
+  lastPrice: number;
+  dayChangePercent: number;
+  oneMonthReturn: number;
+  oneYearReturn: number;
+  nearYearHighPercent: number;
+  tradedValueCr: number;
+  score: number;
+  setup: string;
+  reasons: string[];
+  risks: string[];
+}
+
+export interface NiftySwingScan {
+  indexName: string;
+  timestamp: string;
+  generatedAt: string;
+  source: string;
+  method: string;
+  totalScanned: number;
+  qualifiedCount: number;
+  marketBreadth: {
+    advances: number;
+    declines: number;
+    unchanged: number;
+  };
+  picks: NiftySwingPick[];
+}
+
 export interface HorizonVerdict {
   horizon: "Swing" | "Long term";
   label: VerdictLabel;

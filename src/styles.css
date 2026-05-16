@@ -288,6 +288,7 @@ svg {
 .pattern-section,
 .source-section,
 .levels-section,
+.swing-scan,
 .chart-panel {
   border: 1px solid rgba(13, 20, 18, 0.08);
   border-radius: 22px;
@@ -578,8 +579,199 @@ svg {
 
 .pattern-section,
 .levels-section,
+.swing-scan,
 .source-section {
   padding: 1rem;
+}
+
+.refresh-button,
+.pick-card button {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  border: 0;
+  border-radius: 999px;
+  background: #0d1412;
+  color: #f5f7f2;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.refresh-button {
+  padding: 0.45rem 0.72rem;
+}
+
+.refresh-button:disabled {
+  opacity: 0.58;
+}
+
+.scan-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.scan-summary div {
+  min-height: 5rem;
+  display: grid;
+  align-content: space-between;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(13, 20, 18, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.scan-summary svg {
+  color: #087a4a;
+}
+
+.scan-summary strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.scan-summary span,
+.scan-meta span,
+.risk-note,
+.pick-card p,
+.pick-reasons,
+.scan-error,
+.empty-picks {
+  color: #68756e;
+  font-size: 0.82rem;
+}
+
+.scan-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+}
+
+.scan-meta span {
+  min-height: 1.9rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.56rem;
+  border-radius: 999px;
+  background: #edf2ea;
+  font-weight: 820;
+}
+
+.pick-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.pick-card {
+  min-width: 0;
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(13, 20, 18, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.pick-card__top,
+.setup-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.pick-card h3 {
+  margin: 0.22rem 0 0.16rem;
+  font-size: 1.24rem;
+  line-height: 1;
+}
+
+.pick-card p,
+.risk-note {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.rank-pill,
+.score-chip {
+  min-height: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.rank-pill {
+  padding: 0.2rem 0.5rem;
+  background: #edf2ea;
+  color: #526158;
+}
+
+.score-chip {
+  width: 2.8rem;
+  background: #087a4a;
+  color: #ffffff;
+}
+
+.pick-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.36rem;
+}
+
+.pick-metrics span {
+  min-height: 1.78rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.48rem;
+  border-radius: 999px;
+  background: #f5f7f2;
+  color: #526158;
+  font-size: 0.76rem;
+  font-weight: 820;
+}
+
+.setup-row strong {
+  font-size: 0.95rem;
+}
+
+.setup-row span {
+  color: #0d1412;
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.pick-reasons {
+  display: grid;
+  gap: 0.34rem;
+  margin: 0;
+  padding-left: 1rem;
+  line-height: 1.4;
+}
+
+.pick-card button {
+  width: 100%;
+}
+
+.scan-error,
+.empty-picks {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border-radius: 14px;
+  background: #fff2ef;
+}
+
+.empty-picks {
+  background: #f5f7f2;
 }
 
 .pattern-list {
@@ -867,6 +1059,8 @@ svg {
   .pattern-list,
   .metric-grid,
   .levels-grid,
+  .scan-summary,
+  .pick-list,
   .hot-list {
     grid-template-columns: 1fr;
   }
