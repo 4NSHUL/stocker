@@ -197,14 +197,6 @@ export default function App() {
           </div>
         ) : null}
 
-        <NiftySwingPicksPanel
-          error={scanError}
-          loading={scanLoading}
-          scan={swingScan}
-          onAnalyze={runAnalysis}
-          onRefresh={loadSwingScan}
-        />
-
         {error ? (
           <section className="error-panel" role="alert">
             <strong>Analysis failed</strong>
@@ -324,6 +316,14 @@ export default function App() {
             Preparing first analysis
           </section>
         )}
+
+        <NiftySwingPicksPanel
+          error={scanError}
+          loading={scanLoading}
+          scan={swingScan}
+          onAnalyze={runAnalysis}
+          onRefresh={loadSwingScan}
+        />
       </section>
 
       <HotStocksPanel activeSymbol={analysis?.symbol} onPick={handlePick} />
